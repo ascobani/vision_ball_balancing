@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "config.h"
 #include "logger.h"
+#include "vision/vision.hpp"
 
 extern "C" void app_main(void) {
     LOG_INFO("Starting vision ball balancing (ESP-IDF %s)", esp_get_idf_version());
@@ -21,8 +22,15 @@ extern "C" void app_main(void) {
     for (;;) {
         camera_fb_t *picture = capture_picture();
         if (picture != nullptr) {
-            // Pass picture->buf, len, width, and height to image processing here.
-            // Finish using the frame before returning it to the camera driver.
+            BallPosition pos = process_picture(*picture);
+
+            LOG_INFO(
+                "Ball position: x=%d, y=%d, detected=%d",
+                pos.x,
+                pos.y,
+                static_cast<int>(pos.detected)
+            );
+
             release_picture(picture);
         }
         vTaskDelay(pdMS_TO_TICKS(CAM_CAPTURE_INTERVAL_MS));

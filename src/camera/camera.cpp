@@ -39,7 +39,7 @@ esp_err_t init_camera(void) {
     cameraConfig.xclk_freq_hz = CAM_XCLK_FREQ_HZ;
     cameraConfig.ledc_timer = LEDC_TIMER_0;
     cameraConfig.ledc_channel = LEDC_CHANNEL_0;
-    cameraConfig.pixel_format = PIXFORMAT_RGB565;
+    cameraConfig.pixel_format = PIXFORMAT_GRAYSCALE;
     cameraConfig.frame_size = FRAMESIZE_QVGA;
     cameraConfig.jpeg_quality = 12; // Only used if pixel_format is JPEG.
     cameraConfig.fb_count = 1;
