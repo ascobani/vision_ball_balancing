@@ -2,6 +2,11 @@
 .pio/
 .pioenvs/
 .piolibdeps/
+managed_components/
+sdkconfig
+sdkconfig.old
+sdkconfig.xiao_esp32s3_sense
+sdkconfig.xiao_esp32s3_sense.old
 
 # Local IDE state and generated CLion/CMake files
 .idea/
