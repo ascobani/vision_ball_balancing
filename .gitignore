@@ -1,0 +1,34 @@
+# PlatformIO build output and downloaded dependencies
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Local IDE state and generated CLion/CMake files
+.idea/
+.vscode/
+cmake-build-*/
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CMakeListsPrivate.txt
+compile_commands.json
+
+# macOS files
+.DS_Store
+._*
+
+# Local secrets
+.env
+.env.*
+!.env.example
+include/secrets.h
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*~
+
+# Generated local code graph
+graphify-out/
