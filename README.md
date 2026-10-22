@@ -53,6 +53,10 @@ there is no need to copy the driver's Kconfig into this project. PSRAM uses the
 ESP32-S3 settings in `sdkconfig.defaults`, including `CONFIG_SPIRAM=y` and octal
 mode, rather than the older ESP32-specific setting from the supplied example.
 
+The servo driver, `espressif/servo`, is also declared in `src/idf_component.yml`
+and pinned to 1.0.0. It is available through `#include "iot_servo.h"` for future
+servo control code.
+
 ## Reading the embedded example
 
 - `app_main()` runs once in a FreeRTOS task after ESP-IDF initializes the system.
@@ -125,7 +129,7 @@ discards any settings that were only saved in the generated file.
 src/
 ├── main.cpp                    # Entry point and application flow
 ├── CMakeLists.txt              # All application sources and dependencies
-├── idf_component.yml           # esp32-camera dependency
+├── idf_component.yml           # esp32-camera and servo dependencies
 ├── camera/
 │   ├── camera.cpp              # Initialization and picture capture
 │   └── camera.h                # Public camera functions
@@ -170,3 +174,4 @@ state, generated CMake files, macOS metadata, logs, and local secrets.
 - [PlatformIO ESP-IDF workflow](https://docs.platformio.org/en/latest/frameworks/espidf.html)
 - [Seeed board pinout and active-low LED](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)
 - [ESP-IDF camera component](https://components.espressif.com/components/espressif/esp32-camera/versions/2.1.8/readme)
+- [ESP-IDF servo component](https://docs.espressif.com/projects/esp-iot-solution/en/latest/motor/servo.html)

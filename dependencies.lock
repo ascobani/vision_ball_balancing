@@ -23,13 +23,24 @@ dependencies:
       registry_url: https://components.espressif.com
       type: service
     version: 1.3.1
+  espressif/servo:
+    component_hash: 590e8811e0542d04cef3d355cced4bdbdf132bdd8a770e894201ba24743b2acf
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.4'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.0.0
   idf:
     source:
       type: idf
     version: 5.5.4
 direct_dependencies:
 - espressif/esp32-camera
+- espressif/servo
 - idf
-manifest_hash: 58f091cfa18a2b675bda142f719ce131f9788908ac8210ece06cf970f6d7887d
+manifest_hash: a831a21e3d1843b682e66731c80b15e4a8d483f86e459e25c5d26d09f1d2ebcf
 target: esp32s3
 version: 2.0.0

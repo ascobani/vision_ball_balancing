@@ -1,3 +1,4 @@
 dependencies:
   idf: ">=5.5.0,<6.0.0"
   espressif/esp32-camera: "2.1.8"
+  espressif/servo: "1.0.0"
