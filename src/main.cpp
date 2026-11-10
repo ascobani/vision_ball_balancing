@@ -30,6 +30,7 @@ extern "C" void app_main(void) {
             BallPosition pos = process_picture(*picture);
             release_picture(picture);
             velocity = update_velocity(state, pos.x, pos.y, esp_timer_get_time());
+            LOG_INFO("Velocity: vX:%.2f vY:%.2f", velocity.x, velocity.y);
 
         }
         vTaskDelay(pdMS_TO_TICKS(CAM_CAPTURE_INTERVAL_MS));
