@@ -18,7 +18,7 @@ struct BallTracker {
     float vx = 0;
     float vy = 0;
 
-    uint64_t prevTimeUs = 0;
+    uint64_t prevTime = 0;
     bool initialized = false;
 };
 

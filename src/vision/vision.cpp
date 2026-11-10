@@ -42,19 +42,20 @@ BallPosition process_picture(const camera_fb_t &picture) {
 }
 
 
-BallVelocity update_velocity(BallTracker &state, float x, float y, uint64_t nowUs) {
-    if (state.initialized) {
-        state.prevTimeUs = 0;
+BallVelocity update_velocity(BallTracker &state, float x, float y, uint64_t now) {
+    if (!state.initialized) {
+        state.prevTime = 0;
         state.prevX = state.prevY = 0;
         state.vx = state.vy = 0;
+        state.initialized = true;
     }
-    float dt = (nowUs - state.prevTimeUs) * 1e-6f;
+    float dt = (now - state.prevTime) * 1e-6f;
 
     if (dt <= 0) {
         state.prevX = x;
         state.prevY = y;
         state.vx = state.vy = 0;
-        state.prevTimeUs = nowUs;
+        state.prevTime = now;
         return BallVelocity{0, 0};
     }
 
@@ -71,7 +72,7 @@ BallVelocity update_velocity(BallTracker &state, float x, float y, uint64_t nowU
 
     state.prevX = x;
     state.prevY = y;
-    state.prevTimeUs = nowUs;
+    state.prevTime = now;
 
     return BallVelocity{state.vx, state.vy};
 }
