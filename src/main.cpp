@@ -1,6 +1,7 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_timer.h"
 
 #include "camera.h"
 #include "config.h"
@@ -19,19 +20,17 @@ extern "C" void app_main(void) {
 
     LOG_INFO("Camera ready; capture interval: %d ms", CAM_CAPTURE_INTERVAL_MS);
 
+    BallVelocity velocity = BallVelocity{};
+
+    BallTracker state;
+
     for (;;) {
         camera_fb_t *picture = capture_picture();
         if (picture != nullptr) {
             BallPosition pos = process_picture(*picture);
-
-            LOG_INFO(
-                "Ball position: x=%d, y=%d, detected=%d",
-                pos.x,
-                pos.y,
-                static_cast<int>(pos.detected)
-            );
-
             release_picture(picture);
+            velocity = update_velocity(state, pos.x, pos.y, esp_timer_get_time());
+
         }
         vTaskDelay(pdMS_TO_TICKS(CAM_CAPTURE_INTERVAL_MS));
     }

@@ -27,7 +27,7 @@ BallPosition process_picture(const camera_fb_t &picture) {
         }
     }
 
-    if (count>0) {
+    if (count > 0) {
         pos.x = sum_x / count;
         pos.y = sum_y / count;
         pos.detected = true;
@@ -39,4 +39,39 @@ BallPosition process_picture(const camera_fb_t &picture) {
     pos.detected = false;
 
     return pos;
+}
+
+
+BallVelocity update_velocity(BallTracker &state, float x, float y, uint64_t nowUs) {
+    if (state.initialized) {
+        state.prevTimeUs = 0;
+        state.prevX = state.prevY = 0;
+        state.vx = state.vy = 0;
+    }
+    float dt = (nowUs - state.prevTimeUs) * 1e-6f;
+
+    if (dt <= 0) {
+        state.prevX = x;
+        state.prevY = y;
+        state.vx = state.vy = 0;
+        state.prevTimeUs = nowUs;
+        return BallVelocity{0, 0};
+    }
+
+    float rawVx = (x - state.prevX) / dt;
+    float rawVy = (y - state.prevY) / dt;
+
+    constexpr float filterTau =
+            CAM_CAPTURE_INTERVAL_MS * 1e-3f;
+
+    float alpha = dt / (filterTau + dt);
+
+    state.vx += alpha * (rawVx - state.vx);
+    state.vy += alpha * (rawVy - state.vy);
+
+    state.prevX = x;
+    state.prevY = y;
+    state.prevTimeUs = nowUs;
+
+    return BallVelocity{state.vx, state.vy};
 }

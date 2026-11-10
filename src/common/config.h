@@ -54,7 +54,7 @@
 
 // Camera clock and example capture interval
 #define CAM_XCLK_FREQ_HZ        20000000
-#define CAM_CAPTURE_INTERVAL_MS 5000
+#define CAM_CAPTURE_INTERVAL_MS 33      // ~30 fps (1000 / 30)
 
 #define CONTROL_FREQUENCY_HZ    100
 #define CONTROL_INTERVAL_MS     (1000 / CONTROL_FREQUENCY_HZ)
