@@ -20,7 +20,7 @@ extern "C" void app_main(void) {
 
     LOG_INFO("Camera ready; capture interval: %d ms", CAM_CAPTURE_INTERVAL_MS);
 
-    BallVelocity velocity = BallVelocity{};
+    BallVelocity velocity{};
 
     BallTracker state;
 
