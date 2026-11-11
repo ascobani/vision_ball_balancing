@@ -1,6 +1,7 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_timer.h"
 
 #include "camera.h"
 #include "config.h"
@@ -29,6 +30,10 @@ extern "C" void app_main(void) {
 
     LOG_INFO("Servos initialized and centered at %d deg", SERVO_CENTER_ANGLE);
 
+    BallVelocity velocity{};
+
+    BallTracker state;
+
     for (;;) {
         camera_fb_t *picture = capture_picture();
         if (picture != nullptr) {
@@ -43,6 +48,9 @@ extern "C" void app_main(void) {
 
 
             release_picture(picture);
+            velocity = update_velocity(state, pos.x, pos.y, esp_timer_get_time());
+            LOG_INFO("Velocity: vX:%.2f vY:%.2f", velocity.x, velocity.y);
+
         }
         vTaskDelay(pdMS_TO_TICKS(CAM_CAPTURE_INTERVAL_MS));
     }
