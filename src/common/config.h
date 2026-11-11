@@ -64,4 +64,11 @@
 #define PID_KI                  0.0f
 #define PID_KD                  0.0f
 
+// Mechanical dimensions for inverse kinematics (in millimeters & degrees)
+#define SERVO_ARM_LENGTH_MM     20.0f   // Servo kolunun (horn) delikler arasi uzunlugu (mm)
+#define PLATFORM_RADIUS_MM      65.0f   // Platform merkezinden servo kollarina olan yaricap (mm)
+#define SERVO_MAX_TILT_DEG      15.0f   // Platformun maksimum egilme acisi (derece)
+#define SERVO_MIN_SAFE_ANGLE    30.0f   // Mekanik zorlanmayi onlemek icin alt aci siniri
+#define SERVO_MAX_SAFE_ANGLE    150.0f  // Mekanik zorlanmayi onlemek icin ust aci siniri
+
 #endif // VISION_BALL_BALANCING_CONFIG_H

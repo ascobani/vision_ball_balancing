@@ -1,8 +1,34 @@
 #include "servo.h"
+#include <math.h>
 #include "driver/ledc.h"
 #include "esp_log.h"
 
 static const char *TAG = "servo";
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
+
+// Eğer config.h içine henüz eklenmediyse varsayılan mekanik ölçüler:
+#ifndef SERVO_ARM_LENGTH_MM
+#define SERVO_ARM_LENGTH_MM     20.0f
+#endif
+
+#ifndef PLATFORM_RADIUS_MM
+#define PLATFORM_RADIUS_MM      65.0f
+#endif
+
+#ifndef SERVO_MAX_TILT_DEG
+#define SERVO_MAX_TILT_DEG      15.0f
+#endif
+
+#ifndef SERVO_MIN_SAFE_ANGLE
+#define SERVO_MIN_SAFE_ANGLE    30.0f
+#endif
+
+#ifndef SERVO_MAX_SAFE_ANGLE
+#define SERVO_MAX_SAFE_ANGLE    150.0f
+#endif
 
 // config.h dosyasındaki pin tanımları (D0=1, D1=2, D3=4)
 static const int SERVO_PINS[SERVO_COUNT] = {
@@ -21,6 +47,13 @@ static const ledc_channel_t SERVO_CHANNELS[SERVO_COUNT] = {
     LEDC_CHANNEL_1,
     LEDC_CHANNEL_2,
     LEDC_CHANNEL_3
+};
+
+// 3 servonun platform etrafındaki açıları: 0°, 120°, 240° (Radyan cinsinden)
+static const float SERVO_MOUNT_ANGLES_RAD[SERVO_COUNT] = {
+    0.0f,
+    (120.0f * (float)M_PI) / 180.0f,
+    (240.0f * (float)M_PI) / 180.0f
 };
 
 // Mikrosaniye değerini LEDC duty (doluluk) değerine çeviren yardımcı fonksiyon
@@ -115,4 +148,63 @@ esp_err_t servo_set_all_angles(float angle1_deg, float angle2_deg, float angle3_
 
 esp_err_t servo_center_all(void) {
     return servo_set_all_angles(SERVO_CENTER_ANGLE, SERVO_CENTER_ANGLE, SERVO_CENTER_ANGLE);
+}
+
+float servo_height_to_angle(float height_offset_mm) {
+    // arcsin tanım kümesi [-1.0, 1.0] dışına taşmaması için oranı sınırla
+    float sin_val = height_offset_mm / SERVO_ARM_LENGTH_MM;
+    if (sin_val > 0.95f) sin_val = 0.95f;
+    if (sin_val < -0.95f) sin_val = -0.95f;
+
+    // 0 mm -> 90 derece (yatay merkez). +mm yukarı, -mm aşağı döndürür.
+    float delta_angle_deg = asinf(sin_val) * (180.0f / (float)M_PI);
+    float target_angle = (float)SERVO_CENTER_ANGLE + delta_angle_deg;
+
+    // Mekanik kolların sıkışmaması için güvenli açı sınırlarında tut
+    if (target_angle < SERVO_MIN_SAFE_ANGLE) target_angle = SERVO_MIN_SAFE_ANGLE;
+    if (target_angle > SERVO_MAX_SAFE_ANGLE) target_angle = SERVO_MAX_SAFE_ANGLE;
+
+    return target_angle;
+}
+
+esp_err_t servo_set_height_offset_mm(uint8_t servo_index, float height_offset_mm) {
+    if (servo_index >= SERVO_COUNT) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    float angle_deg = servo_height_to_angle(height_offset_mm);
+    return servo_set_angle(servo_index, angle_deg);
+}
+
+esp_err_t servo_set_all_heights_mm(float h1_mm, float h2_mm, float h3_mm) {
+    esp_err_t err;
+    err = servo_set_height_offset_mm(0, h1_mm);
+    if (err != ESP_OK) return err;
+
+    err = servo_set_height_offset_mm(1, h2_mm);
+    if (err != ESP_OK) return err;
+
+    return servo_set_height_offset_mm(2, h3_mm);
+}
+
+esp_err_t servo_set_platform_tilt(float tilt_x_deg, float tilt_y_deg, float heave_z_mm) {
+    // Platform eğim açılarını güvenli aralıkta sınırla
+    if (tilt_x_deg > SERVO_MAX_TILT_DEG) tilt_x_deg = SERVO_MAX_TILT_DEG;
+    if (tilt_x_deg < -SERVO_MAX_TILT_DEG) tilt_x_deg = -SERVO_MAX_TILT_DEG;
+    if (tilt_y_deg > SERVO_MAX_TILT_DEG) tilt_y_deg = SERVO_MAX_TILT_DEG;
+    if (tilt_y_deg < -SERVO_MAX_TILT_DEG) tilt_y_deg = -SERVO_MAX_TILT_DEG;
+
+    float tx_rad = (tilt_x_deg * (float)M_PI) / 180.0f;
+    float ty_rad = (tilt_y_deg * (float)M_PI) / 180.0f;
+
+    float heights[SERVO_COUNT];
+    for (int i = 0; i < SERVO_COUNT; i++) {
+        // i. servonun platform üzerindeki (x_i, y_i) koordinatı
+        float x_i = PLATFORM_RADIUS_MM * cosf(SERVO_MOUNT_ANGLES_RAD[i]);
+        float y_i = PLATFORM_RADIUS_MM * sinf(SERVO_MOUNT_ANGLES_RAD[i]);
+
+        // İstenen X ve Y eğimi için o köşenin gereken yükseklik değişimi (mm)
+        heights[i] = heave_z_mm + (x_i * sinf(tx_rad)) + (y_i * sinf(ty_rad));
+    }
+
+    return servo_set_all_heights_mm(heights[0], heights[1], heights[2]);
 }
