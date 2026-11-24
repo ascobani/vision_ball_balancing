@@ -2,7 +2,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
-
 #include "camera.h"
 #include "config.h"
 #include "logger.h"
@@ -18,9 +17,7 @@ extern "C" void app_main(void) {
                   esp_err_to_name(cameraError), static_cast<unsigned int>(cameraError));
         return;
     }
-
     LOG_INFO("Camera ready; capture interval: %d ms", CAM_CAPTURE_INTERVAL_MS);
-
     const esp_err_t servoError = servo_init();
     if (servoError != ESP_OK) {
         LOG_ERROR("Servo initialization failed: %s (0x%x)",
@@ -36,7 +33,7 @@ extern "C" void app_main(void) {
     for (;;) {
         camera_fb_t *picture = capture_picture();
         if (picture != nullptr) {
-            // Kamera görüntüsünün tam merkez koordinatları (hedef nokta)
+            // görüntünün ortası, top buraya gelsin istiyoruz
             const float center_x = static_cast<float>(picture->width) / 2.0f;
             const float center_y = static_cast<float>(picture->height) / 2.0f;
 
@@ -55,18 +52,18 @@ extern "C" void app_main(void) {
             LOG_INFO("Velocity: vX:%.2f vY:%.2f", velocity.x, velocity.y);
 
             if (pos.detected) {
-                // Topun merkezden uzaklığı (Hata / Error):Normalize edilmiş [-1.0, +1.0] aralığı
+                // topun ortadan ne kadar uzak (-1 ile 1 arası)
                 const float error_x = (center_x - static_cast<float>(pos.x)) / center_x;
                 const float error_y = (center_y - static_cast<float>(pos.y)) / center_y;
 
-                // Konum hatası ve hızdan (ivme/hareket yönünden) gereken platform eğim açısını (derece) hesapla
+                // P konuma, D hıza bakıyor. 0.05 hız katsayısı, deneyerek ayar çektik
                 const float tilt_x_deg = (PID_KP * error_x * SERVO_MAX_TILT_DEG) - (PID_KD * velocity.x * 0.05f);
                 const float tilt_y_deg = (PID_KP * error_y * SERVO_MAX_TILT_DEG) - (PID_KD * velocity.y * 0.05f);
 
-                // Hesaplanan eğimi 3 servonun milimetre yüksekliğine ve PWM açısına çevirip uygula
+                // eğimi servolara göndermek için
                 servo_set_platform_tilt(tilt_x_deg, tilt_y_deg, 0.0f);
             } else {
-                // Kamerada top görünmüyorsa platformu düz (0 mm / 90 derece) tut
+                // top görünmüyorsa platform düz kalacak
                 servo_center_all();
             }
         }
